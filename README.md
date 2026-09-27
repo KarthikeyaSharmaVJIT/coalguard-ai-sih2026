@@ -187,7 +187,7 @@ npm run build
 
 ## Prototype Demo Video
 
-- **Video Walkthrough:** [CoalGuard AI - 90 Second Video Demonstration](https://youtu.be/placeholder)
+- **Video Walkthrough:** [CoalGuard AI - 3 Minutes Video Demonstration](https://youtu.be/WdogI4Kr5tE?si=uzWUL-XgJgPc10qu)
 
 ---
 
