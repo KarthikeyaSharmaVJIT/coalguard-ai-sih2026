@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bot, X, Send, Sparkles, BookOpen, Languages, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -9,28 +9,12 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
   const [messages, setMessages] = useState([
     {
       sender: 'copilot',
-      text: 'Greetings! I am Khanan Copilot (खनन मित्र), your AI statutory safety intelligence officer for Coal Mines Regulations (CMR 2017), Mines Act 1952, DGMS directives, and live multi-sensor telemetry.',
+      text: 'Greetings! I am Khanan Copilot, statutory safety intelligence assistant for Coal Mines Regulations (CMR 2017), Mines Act 1952, DGMS directives, and live multi-sensor telemetry.',
       reference: 'CMR 2017 & DGMS Safety Core Knowledgebase',
     },
   ]);
 
-  useEffect(() => {
-    if (isOpen && initialQuery) {
-      handleSend(initialQuery);
-    }
-  }, [isOpen, initialQuery]);
-
-  if (!isOpen) return null;
-
-  const quickQuestions = [
-    { label: '🚨 Biggest Safety Concern', query: 'What is the biggest safety concern at this mine?' },
-    { label: '🚜 Haul Road Berm Rules (Reg 107)', query: 'Explain haul road and berm rules under CMR 2017 Reg 107' },
-    { label: '⚠️ HEMM AVA & Radar (Reg 94)', query: 'What are mandatory safety sensors for dumpers under Reg 94?' },
-    { label: '📋 Shift Handover & PTW', query: 'What are the statutory shift handover and PTW rules?' },
-    { label: '💨 CAAQMS Air Limits (NAAQS)', query: 'What are the 24-hour NAAQS limits for PM10 and PM2.5 in mining areas?' },
-  ];
-
-  const handleSend = async (qText) => {
+  const handleSend = useCallback(async (qText) => {
     const textToSend = qText || query;
     if (!textToSend.trim()) return;
 
@@ -65,29 +49,42 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, defaultMineId, language]);
+
+  useEffect(() => {
+    if (isOpen && initialQuery) {
+      handleSend(initialQuery);
+    }
+  }, [isOpen, initialQuery, handleSend]);
+
+  if (!isOpen) return null;
+
+  const quickQuestions = [
+    { label: 'Biggest Safety Concern', query: 'What is the biggest safety concern at this mine?' },
+    { label: 'Haul Road Berm Rules (Reg 107)', query: 'Explain haul road and berm rules under CMR 2017 Reg 107' },
+    { label: 'HEMM AVA & Radar (Reg 94)', query: 'What are mandatory safety sensors for dumpers under Reg 94?' },
+    { label: 'Shift Handover & PTW Rules', query: 'What are the statutory shift handover and PTW rules?' },
+    { label: 'CAAQMS Air Limits (NAAQS)', query: 'What are the 24-hour NAAQS limits for PM10 and PM2.5 in mining areas?' },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl bg-[#0f131a] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="relative w-full max-w-2xl bg-[#0c1017] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-emerald-950/20">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-white-002">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
               <Bot className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-white text-base">खनन Copilot (Khanan Copilot)</h3>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
-                  AI CMR 2017
-                </span>
-                <span className="text-[10px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded-full font-mono border border-cyan-500/20">
+                <h2 className="font-display font-bold text-white text-base">Khanan Copilot</h2>
+                <span className="text-[10px] bg-white/5 text-gray-300 px-2 py-0.5 rounded font-mono border border-white/10">
                   Site: {defaultMineId.toUpperCase()}
                 </span>
               </div>
-              <p className="text-xs text-gray-400">Bilingual Statutory & Safety Intelligence Engine</p>
+              <p className="text-xs text-gray-400 font-mono">Bilingual Statutory & Safety Intelligence Engine</p>
             </div>
           </div>
 
@@ -97,7 +94,7 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
               onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 hover:text-white"
             >
-              <Languages className="w-3.5 h-3.5 text-cyan-400" />
+              <Languages className="w-3.5 h-3.5 text-gray-400" />
               <span className="font-mono uppercase">{language === 'en' ? 'EN' : 'हिन्दी'}</span>
             </button>
 
@@ -111,15 +108,15 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
         </div>
 
         {/* Quick Suggestion Chips */}
-        <div className="px-5 py-2.5 bg-black/30 border-b border-white/5 flex items-center gap-2 overflow-x-auto text-xs scrollbar-none">
-          <span className="text-gray-400 font-mono text-[11px] flex-shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-emerald-400" /> Quick Prompts:
+        <div className="px-5 py-2.5 bg-black/40 border-b border-white/5 flex items-center gap-2 overflow-x-auto text-xs font-mono">
+          <span className="text-gray-400 text-[11px] flex-shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-emerald-400" /> Prompts:
           </span>
           {quickQuestions.map((q, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(q.query)}
-              className="flex-shrink-0 px-2.5 py-1 rounded-md bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/30 border border-white/10 text-gray-300 text-xs transition whitespace-nowrap"
+              className="flex-shrink-0 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs transition whitespace-nowrap"
             >
               {q.label}
             </button>
@@ -136,19 +133,19 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
               <div
                 className={`max-w-[90%] rounded-xl p-4 text-xs leading-relaxed ${
                   m.sender === 'user'
-                    ? 'bg-emerald-600 text-white rounded-tr-none'
-                    : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-none space-y-2.5'
+                    ? 'bg-white/15 text-white rounded-tr-none font-sans'
+                    : 'bg-black/40 border border-white/10 text-gray-200 rounded-tl-none space-y-2.5'
                 }`}
               >
                 {/* Risk Score Highlight Badge if returned */}
                 {m.risk_score && (
                   <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                    <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
-                      <AlertTriangle className="w-3 h-3" /> AI Risk: {m.risk_score}/100 ({m.risk_level})
+                    <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-semibold">
+                      <AlertTriangle className="w-3 h-3" /> Risk Score: {m.risk_score}/100 ({m.risk_level})
                     </span>
                     {m.mine && (
                       <span className="text-[10px] text-gray-400 font-mono">
-                        Target: {m.mine}
+                        Site: {m.mine}
                       </span>
                     )}
                   </div>
@@ -161,10 +158,10 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
 
                 {/* Action Required Box */}
                 {m.action_required && (
-                  <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200 text-[11px] flex items-start gap-1.5">
+                  <div className="p-2.5 rounded bg-white-003 border border-white/10 text-gray-300 text-[11px] flex items-start gap-2">
                     <ShieldCheck className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold">Mandated Corrective Action: </span>
+                      <span className="font-semibold text-amber-400 font-mono">Statutory Action Mandated: </span>
                       {m.action_required}
                     </div>
                   </div>
@@ -183,9 +180,9 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
           ))}
 
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-gray-400 p-2">
+            <div className="flex items-center gap-2 text-xs text-gray-400 p-2 font-mono">
               <Bot className="w-4 h-4 text-emerald-400 animate-spin" />
-              <span>Synthesizing CMR 2017 statutes and live multi-sensor mine telemetry...</span>
+              <span>Analyzing CMR 2017 corpus and sensor telemetry...</span>
             </div>
           )}
         </div>
@@ -205,14 +202,14 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
             placeholder={
               language === 'hi'
                 ? 'जैसे: खदान में सबसे बड़ा खतरा क्या है? या नियम 107 बर्म मानक...'
-                : 'Ask: "What is the biggest safety concern at this mine?" or Reg 107 haul road berm rules...'
+                : 'Ask: "What is the biggest safety concern at this mine?" or Reg 107 haul road rules...'
             }
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition"
+            className="flex-1 bg-black/60 border border-white/10 rounded-lg px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/60 font-mono transition"
           />
           <button
             type="submit"
             disabled={!query.trim() || loading}
-            className="px-4 py-2.5 rounded-xl bg-emerald-500 text-black font-semibold text-xs hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-mono font-semibold text-xs disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Send</span>
@@ -223,4 +220,3 @@ export default function KhananCopilotModal({ isOpen, onClose, defaultMineId = 'g
     </div>
   );
 }
-

@@ -184,7 +184,11 @@ export default function FieldInspectionApp() {
               <label className="block text-gray-400 font-mono text-[11px] mb-1">Severity & Escalation:</label>
               <select
                 value={severity}
-                onChange={(e) => setSeverity(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSeverity(val);
+                  setDeadlineHours(val === 'Critical' ? 6 : val === 'Major' ? 24 : 48);
+                }}
                 className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500"
               >
                 <option value="Critical">Critical (Immediate Stop Work / 6h)</option>

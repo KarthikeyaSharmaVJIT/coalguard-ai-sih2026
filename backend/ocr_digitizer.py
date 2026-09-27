@@ -1,11 +1,65 @@
 """
 OCR & Statutory Document Digitizer for Coal Mining Governance.
-Simulates and parses Environmental Clearances (MoEFCC), DGMS Notices,
+Parses Environmental Clearances (MoEFCC), DGMS Show-Cause Notices,
 and State Pollution Control Board Consent-to-Operate (CTO) permits.
+
+=============================================================================
+OPTIONAL TESSERACT OCR SYSTEM INSTALLATION INSTRUCTIONS:
+=============================================================================
+This module uses `pytesseract` and `Pillow` to extract raw text from uploaded
+scanned documents, inspection photos, and PDFs.
+
+Note: `pytesseract` is a Python wrapper that communicates with the Tesseract OCR
+system binary. To enable optical character recognition from scanned image files:
+
+- Windows:
+    1. Download and run the installer from UB-Mannheim:
+       https://github.com/UB-Mannheim/tesseract/releases
+       (Default install path: C:\\Program Files\\Tesseract-OCR\\tesseract.exe)
+    2. Or install via winget:
+       winget install --id UB-Mannheim.TesseractOCR
+- Ubuntu / Debian:
+    sudo apt update && sudo apt install -y tesseract-ocr
+- macOS:
+    brew install tesseract
+
+If the Tesseract binary is not installed or not in system PATH, this module
+gracefully falls back to direct PDF text extraction (via pypdf) and direct
+text parsing with clear diagnostic logging.
+=============================================================================
 """
 
+import io
+import os
 import re
-from typing import Dict, List, Any
+import shutil
+import logging
+from typing import Dict, List, Any, Optional
+
+try:
+    import pytesseract
+    from PIL import Image
+    # Check default common Windows installation paths if tesseract is not on system PATH
+    common_win_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+    ]
+    if not shutil.which("tesseract"):
+        for p in common_win_paths:
+            if os.path.exists(p):
+                pytesseract.pytesseract.tesseract_cmd = p
+                break
+except ImportError:
+    pytesseract = None
+    Image = None
+
+try:
+    import pypdf
+except ImportError:
+    pypdf = None
+
+logger = logging.getLogger(__name__)
 
 # Pre-packaged sample statutory documents for instant demonstration
 SAMPLE_DOCUMENTS = {
@@ -80,6 +134,61 @@ Consent is hereby granted to M/s South Eastern Coalfields Limited (Kusmunda OCM)
 """
 }
 
+def extract_text_from_file_bytes(file_bytes: bytes, filename: str) -> str:
+    """
+    Extract raw text from an uploaded document image (PNG/JPEG) or PDF.
+    Uses pytesseract for image OCR and pypdf for PDF text layers.
+    If Tesseract is not installed or raises an error, falls back safely.
+    """
+    lower_name = filename.lower()
+    extracted_text = ""
+
+    # 1. Handle PDF Documents
+    if lower_name.endswith(".pdf") or file_bytes.startswith(b"%PDF"):
+        if pypdf:
+            try:
+                pdf_reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+                pages_text = []
+                for p in pdf_reader.pages:
+                    txt = p.extract_text() or ""
+                    if txt:
+                        pages_text.append(txt)
+                extracted_text = "\n".join(pages_text).strip()
+            except Exception as e:
+                logger.warning(f"pypdf extraction failed: {e}")
+
+        # If PDF didn't yield text or pypdf not available, try decoding as text
+        if not extracted_text:
+            try:
+                extracted_text = file_bytes.decode("utf-8", errors="ignore")
+            except Exception:
+                pass
+
+    # 2. Handle Image Documents (JPEG, PNG, TIFF, BMP, WebP)
+    else:
+        if pytesseract and Image:
+            try:
+                image = Image.open(io.BytesIO(file_bytes))
+                # Run OCR through Tesseract
+                ocr_result = pytesseract.image_to_string(image)
+                extracted_text = ocr_result.strip()
+            except Exception as ocr_err:
+                logger.warning(f"pytesseract image extraction warning: {ocr_err}")
+                # If tesseract binary is not on machine or produces an error, return informative fallback text
+                extracted_text = (
+                    f"[OCR Notice: Image received ({filename}, {len(file_bytes)} bytes). "
+                    f"Tesseract OCR binary not found on local PATH. "
+                    f"Please install Tesseract OCR binary to enable direct raster-to-text extraction.]"
+                )
+        else:
+            extracted_text = (
+                f"[OCR Notice: Image received ({filename}). "
+                f"pytesseract or Pillow not available.]"
+            )
+
+    return extracted_text
+
+
 def analyze_statutory_document(text_content: str, document_title: str = "Uploaded Statutory Order") -> Dict[str, Any]:
     """Parse text and extract compliance entities, limits, regulations, and risk flags."""
     text_upper = text_content.upper()
@@ -101,13 +210,11 @@ def analyze_statutory_document(text_content: str, document_title: str = "Uploade
             break
 
     # Extract Production / Capacity Cap
-    # Priority search for phrases like "70.0 MTPA" or "to 70 MTPA" or "CAPACITY SHALL STRICTLY NOT EXCEED 70.0 MTPA"
     cap_match = re.search(r"(?:NOT EXCEED|EXPANSION.*?TO|MINING OF COAL UP TO|CAPACITY OF)\s*([0-9]+(?:\.[0-9]+)?)\s*(MTPA|MILLION TONNES|MTE)", text_content, re.IGNORECASE)
     if not cap_match:
         cap_match = re.search(r"(\d+(\.\d+)?)\s*(MTPA|MILLION TONNES|MTE)", text_content, re.IGNORECASE)
     
     capacity_cap = f"{cap_match.group(1)} MTPA" if cap_match else "Not specified"
-
 
     # Extract Statutory Regulations
     regulations_found = []
@@ -143,5 +250,6 @@ def analyze_statutory_document(text_content: str, document_title: str = "Uploade
         "key_statutory_clauses": clauses[:6],
         "document_risk_category": risk_level,
         "requires_immediate_field_action": is_show_cause,
+        "raw_text_preview": text_content[:500] + ("..." if len(text_content) > 500 else ""),
         "ai_summary": f"Document processed by OCR engine. Identified {authority} statutory mandate applicable to {mine_match}. Contains {len(clauses)} compliance stipulations requiring verifiable digital audit evidence."
     }

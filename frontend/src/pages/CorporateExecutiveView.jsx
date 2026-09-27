@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   BarChart3, 
-  Award
+  Award,
+  FileText,
+  ShieldAlert
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -16,13 +18,17 @@ import {
 import { SAMPLE_MINES } from '../lib/sampleData';
 import { api } from '../lib/api';
 
-export default function CorporateExecutiveView() {
+export default function CorporateExecutiveView({ onOpenReport }) {
   const [mines, setMines] = useState(SAMPLE_MINES);
   const [selectedSubsidiary, setSelectedSubsidiary] = useState('ALL');
+  const [violations, setViolations] = useState([]);
 
   useEffect(() => {
     api.getMines().then((data) => {
       if (data && data.length) setMines(data);
+    });
+    api.getRecurringViolations().then((data) => {
+      if (data && data.length) setViolations(data);
     });
   }, []);
 
@@ -41,51 +47,64 @@ export default function CorporateExecutiveView() {
   }));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-5 bg-[#0d1118]/80 border-white/10">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl bg-[#0c1017] border border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-            <Building2 className="w-6 h-6 text-cyan-400" />
+          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-5 h-5 text-cyan-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white font-display">Corporate HQ & Subsidiary Matrix</h2>
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                Coal India Limited (Apex Board)
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-base font-bold text-white font-display">Corporate HQ Matrix</h1>
+              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-white/5 text-gray-300 border border-white/10">
+                Coal India Limited Board
               </span>
             </div>
-            <p className="text-xs text-gray-400 font-mono">
-              Subsidiary Benchmark • Production vs EC Limits • High-Level Governance Analytics
+            <p className="text-xs text-gray-400 font-mono mt-0.5">
+              Multi-Subsidiary Benchmark • Environmental Clearance Caps • Systemic Risk Audits
             </p>
           </div>
         </div>
 
-        {/* Subsidiary Filter */}
-        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
-          {subsidiaries.map((sub) => (
+        {/* Subsidiary Filter & Export Compliance Report */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/10 text-xs">
+            {subsidiaries.map((sub) => (
+              <button
+                key={sub}
+                onClick={() => setSelectedSubsidiary(sub)}
+                className={`px-2.5 py-1 rounded font-mono text-xs transition ${
+                  selectedSubsidiary === sub
+                    ? 'bg-white/15 text-white font-semibold'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+
+          {onOpenReport && (
             <button
-              key={sub}
-              onClick={() => setSelectedSubsidiary(sub)}
-              className={`px-3 py-1.5 rounded-lg font-mono font-medium transition ${
-                selectedSubsidiary === sub
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              onClick={onOpenReport}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-200 border border-white/10 text-xs font-mono transition cursor-pointer"
+              title="Export Statutory Compliance Report"
             >
-              {sub}
+              <FileText className="w-3.5 h-3.5 text-amber-400" />
+              <span>Export Compliance Report</span>
             </button>
-          ))}
+          )}
         </div>
       </div>
 
       {/* Production vs EC Limit Chart Panel */}
-      <div className="glass-panel p-5 bg-[#0d1118]/80 border-white/10 space-y-4">
+      <div className="p-5 rounded-xl bg-[#0c1017] border border-white/10 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white font-display flex items-center gap-2">
+          <h2 className="text-sm font-bold text-white font-display flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-cyan-400" /> Actual Production vs Environmental Clearance (EC) Cap (MTPA)
-          </h3>
+          </h2>
           <span className="text-xs font-mono text-gray-400">Showing {filteredMines.length} Opencast Mines</span>
         </div>
 
@@ -106,14 +125,14 @@ export default function CorporateExecutiveView() {
       </div>
 
       {/* Subsidiary Performance Comparison Table */}
-      <div className="glass-panel p-5 bg-[#0d1118]/80 border-white/10 space-y-4">
-        <h3 className="text-sm font-bold text-white font-display flex items-center gap-2">
+      <div className="p-5 rounded-xl bg-[#0c1017] border border-white/10 space-y-4">
+        <h2 className="text-sm font-bold text-white font-display flex items-center gap-2">
           <Award className="w-4 h-4 text-amber-400" /> Subsidiary Compliance Scorecard
-        </h3>
+        </h2>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-gray-300">
-            <thead className="bg-white/5 font-mono text-gray-400 uppercase text-[10px] border-b border-white/10">
+            <thead className="bg-white-002 font-mono text-gray-400 uppercase text-[10px] border-b border-white/10">
               <tr>
                 <th className="p-3">Mine Project</th>
                 <th className="p-3">Subsidiary</th>
@@ -130,24 +149,24 @@ export default function CorporateExecutiveView() {
                 const isElevated = m.composite_risk_score >= 45 && !isCritical;
 
                 return (
-                  <tr key={m.id} className="hover:bg-white/5 transition">
+                  <tr key={m.id} className="hover:bg-white-002 transition">
                     <td className="p-3 font-semibold text-white">{m.name}</td>
                     <td className="p-3 text-gray-400">{m.subsidiary.split(' ')[0]}</td>
                     <td className="p-3">{m.production_mtpa} / {m.capacity_mtpa} MT</td>
                     <td className="p-3">
-                      <span className={`font-bold ${parseFloat(util) > 100 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      <span className={`font-semibold ${parseFloat(util) > 100 ? 'text-rose-400' : 'text-emerald-400'}`}>
                         {util}%
                       </span>
                     </td>
                     <td className="p-3 text-gray-400 truncate max-w-[180px]">{m.contractor}</td>
                     <td className="p-3">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                           isCritical
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            ? 'bg-rose-500/20 text-rose-300'
                             : isElevated
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            ? 'bg-amber-500/20 text-amber-300'
+                            : 'bg-emerald-500/20 text-emerald-300'
                         }`}
                       >
                         {m.composite_risk_score}/100 ({m.risk_level})
@@ -160,6 +179,47 @@ export default function CorporateExecutiveView() {
           </table>
         </div>
       </div>
+
+      {/* Merged Regulatory Intelligence & Recurring Contraventions */}
+      {violations.length > 0 && (
+        <div className="p-5 rounded-xl bg-[#0c1017] border border-white/10 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-sm font-bold text-white font-display flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-rose-400" /> Regulatory Compliance & Recurring Contravention Patterns
+            </h2>
+            <span className="text-xs font-mono text-gray-400">DGMS / CPCB Reference Corpus</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {violations.map((v, idx) => (
+              <div key={idx} className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-white text-xs">{v.category}</span>
+                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-semibold">
+                    {v.frequency_count} Incidents
+                  </span>
+                </div>
+                <div className="text-[11px] font-mono text-gray-400">{v.statutory_reference}</div>
+                <p className="text-gray-300 text-[11px] leading-relaxed">
+                  <span className="text-gray-400 font-medium">Root Cause:</span> {v.root_cause}
+                </p>
+                <div className="p-2.5 rounded bg-white-003 text-[11px] text-emerald-300 space-y-0.5">
+                  <div className="text-[10px] text-gray-400 font-mono uppercase font-bold">Mandatory Preventive Directive:</div>
+                  <div>{v.preventive_directive}</div>
+                </div>
+                <div className="flex items-center gap-1.5 pt-1 text-[10px] text-gray-500 font-mono">
+                  <span>Mines:</span>
+                  {v.affected_mines?.map((m, i) => (
+                    <span key={i} className="px-1.5 py-0.2 rounded bg-white/5 text-gray-300">
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );

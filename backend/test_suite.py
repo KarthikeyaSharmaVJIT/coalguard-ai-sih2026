@@ -9,7 +9,7 @@ from backend.data import MINES
 from backend.risk_engine import get_all_mine_risk_matrix, detect_recurring_violation_patterns
 from backend.cascade_engine import get_contractor_network, simulate_contractor_stop_work
 from backend.blockchain_ledger import ledger_instance
-from backend.ocr_digitizer import analyze_statutory_document, SAMPLE_DOCUMENTS
+from backend.ocr_digitizer import analyze_statutory_document, extract_text_from_file_bytes, SAMPLE_DOCUMENTS
 from backend.statutory_reports import generate_dgms_form_iv, generate_cpcb_form_v
 from backend.ai_copilot import ask_khanan_copilot
 from backend.prediction_engine import predict_mine_hazards
@@ -66,10 +66,15 @@ def run_tests():
     assert restored_result["valid"] is True, "Restoration failed to restore valid ledger integrity"
     print(f"[OK] Blockchain Tamper-Resistance: Intentionally injected mutation successfully flagged.")
 
-    # 5. Test OCR Digitizer
+    # 5. Test OCR Digitizer (Text & File Bytes Extraction)
     doc_res = analyze_statutory_document(SAMPLE_DOCUMENTS["ec_gevra"], "Gevra EC 70 MTPA")
     assert "MoEFCC" in doc_res["issuing_authority"]
     assert "70" in doc_res["statutory_capacity_cap"]
+    
+    # Test extract_text_from_file_bytes with mock text/PDF bytes
+    mock_pdf_bytes = b"%PDF-1.4 simulated pdf document with MoEFCC 70 MTPA capacity"
+    extracted_pdf_text = extract_text_from_file_bytes(mock_pdf_bytes, "test_order.pdf")
+    assert len(extracted_pdf_text) > 0
     print(f"[OK] OCR Digitizer parsed: {doc_res['issuing_authority']} - Cap: {doc_res['statutory_capacity_cap']}.")
 
     # 6. Test Statutory Reports

@@ -7,49 +7,65 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height: 700 });
   const [isRotating, setIsRotating] = useState(true);
+  const [globeReady, setGlobeReady] = useState(false);
 
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
-      setDimensions({
-        width: containerRef.current.clientWidth || 800,
-        height: containerRef.current.clientHeight || 700,
-      });
+      const w = containerRef.current.clientWidth;
+      const h = containerRef.current.clientHeight;
+      if (w > 0 && h > 0) {
+        setDimensions({ width: w, height: h });
+      }
     }
   }, []);
 
+  // ResizeObserver for reliable dimension tracking
+  // Multiple staggered delays handle React 19 StrictMode remounting cycle
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
     updateDimensions();
+    const t1 = setTimeout(updateDimensions, 150);
+    const t2 = setTimeout(updateDimensions, 500);
+    const t3 = setTimeout(updateDimensions, 1000);
+
+    const ro = new ResizeObserver(() => updateDimensions());
+    ro.observe(el);
     window.addEventListener('resize', updateDimensions);
-    const timer = setTimeout(updateDimensions, 200);
+
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      ro.disconnect();
       window.removeEventListener('resize', updateDimensions);
-      clearTimeout(timer);
     };
   }, [updateDimensions]);
 
+  // Configure globe controls after onGlobeReady fires
+  // (avoids calling controls() before three.js renderer is initialized)
   useEffect(() => {
-    if (globeRef.current) {
-      // Focus on central India coordinates
-      globeRef.current.pointOfView({ lat: 22.8, lng: 82.2, altitude: 1.55 }, 1200);
-      const controls = globeRef.current.controls();
-      if (controls) {
-        controls.autoRotate = isRotating;
-        controls.autoRotateSpeed = 0.4;
-        controls.enableZoom = true;
-      }
+    if (!globeReady || !globeRef.current) return;
+    globeRef.current.pointOfView({ lat: 22.8, lng: 82.2, altitude: 1.55 }, 1200);
+    const controls = globeRef.current.controls();
+    if (controls) {
+      controls.autoRotate = isRotating;
+      controls.autoRotateSpeed = 0.4;
+      controls.enableZoom = true;
     }
-  }, []);
+    // Final dimension sync after globe canvas is in the DOM
+    updateDimensions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globeReady, updateDimensions]);
 
   useEffect(() => {
     if (globeRef.current) {
       const controls = globeRef.current.controls();
-      if (controls) {
-        controls.autoRotate = isRotating;
-      }
+      if (controls) controls.autoRotate = isRotating;
     }
   }, [isRotating]);
 
-  // When selected mine changes from outside
   useEffect(() => {
     if (selectedMine && globeRef.current) {
       globeRef.current.pointOfView(
@@ -65,7 +81,6 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
     }
   };
 
-  // Points data
   const pointsData = mines.map((m) => ({
     ...m,
     lat: m.lat,
@@ -74,7 +89,6 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
     color: m.composite_risk_score >= 70 ? '#ef4444' : (m.composite_risk_score >= 45 ? '#f59e0b' : '#10b981'),
   }));
 
-  // Pulsing rings data
   const ringsData = mines.map((m) => ({
     lat: m.lat,
     lng: m.lng,
@@ -85,7 +99,17 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
   }));
 
   return (
-    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center overflow-hidden bg-[#07090e]">
+    /*
+     * KEY FIX: Use absolute inset-0 (inline style) instead of w-full h-full inside a
+     * flex items-center parent. In CSS spec, height:100% on a flex child with
+     * align-items:center resolves to 'auto' (content height), not the container height.
+     * absolute inset-0 guarantees the div fills the positioned ancestor regardless of
+     * flex context, so ResizeObserver reads the correct dimensions on first mount.
+     */
+    <div
+      ref={containerRef}
+      style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#07090e' }}
+    >
       <Globe
         ref={globeRef}
         width={dimensions.width}
@@ -106,7 +130,7 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
         pointLabel={(p) => `
           <div style="background: rgba(10,12,16,0.95); border: 1px solid ${p.color}; padding: 10px 14px; border-radius: 8px; font-family: monospace; color: #fff; font-size: 11px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
             <div style="font-weight: bold; color: ${p.color}; font-size: 13px;">${p.name}</div>
-            <div style="color: #94a3b8; font-size: 10px; margin-top: 2px;">${p.subsidiary} • ${p.state}</div>
+            <div style="color: #94a3b8; font-size: 10px; margin-top: 2px;">${p.subsidiary} \u2022 ${p.state}</div>
             <div style="margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">
               Governance Risk: <strong>${p.composite_risk_score}/100</strong> (${p.risk_level})
             </div>
@@ -121,10 +145,11 @@ export default function GlobeVisualizer({ mines, selectedMine, onSelectMine }) {
         ringMaxRadius="maxR"
         ringPropagationSpeed="propagationSpeed"
         ringRepeatPeriod="repeatPeriod"
+        onGlobeReady={() => setGlobeReady(true)}
       />
 
       {/* Floating Globe Controls */}
-      <div className="absolute bottom-16 right-4 z-20 flex flex-col gap-2">
+      <div className="absolute bottom-16 right-96 z-20 flex flex-col gap-2">
         <button
           onClick={handleResetCamera}
           className="p-2.5 rounded-xl bg-black/60 hover:bg-black/80 text-white border border-white/10 shadow-lg backdrop-blur-md transition flex items-center justify-center"

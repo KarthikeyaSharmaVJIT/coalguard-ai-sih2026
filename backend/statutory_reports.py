@@ -16,9 +16,19 @@ def generate_dgms_form_iv(mine_id: str) -> Dict[str, Any]:
         return {"error": f"Mine {mine_id} not found"}
 
     incidents = SAFETY_INCIDENTS.get(mine_id, [])
-    latest_incident = incidents[0] if incidents else {
-        "id": "N/A", "date": "No fatal incidents recorded in current period", "cause": "Routine operations", "severity": "Nil", "fatalities": 0, "alert_no": "N/A"
-    }
+    if incidents:
+        latest_incident = incidents[0]
+        action_taken = "Internal Court of Inquiry constituted under Section 24; haul road graded; contractor show-cause served."
+    else:
+        latest_incident = {
+            "id": "N/A",
+            "date": "No reportable incidents recorded",
+            "cause": "No active incident on record",
+            "severity": "Nil",
+            "fatalities": 0,
+            "alert_no": "No active DGMS alert on record",
+        }
+        action_taken = "Routine compliance monitoring active; zero statutory inquiries open."
 
     report_data = {
         "form_title": "FIRST SCHEDULE - FORM IV",
@@ -37,10 +47,10 @@ def generate_dgms_form_iv(mine_id: str) -> Dict[str, Any]:
             "incident_id": latest_incident.get("id", "N/A"),
             "date_of_occurrence": latest_incident.get("date", "N/A"),
             "exact_location_in_mine": "Overburden Haul Road Bench #4 / Coal Face",
-            "nature_of_occurrence": latest_incident.get("cause", "N/A"),
+            "nature_of_occurrence": latest_incident.get("cause", "No active incident on record"),
             "fatalities_count": latest_incident.get("fatalities", 0),
-            "dgms_alert_reference": latest_incident.get("alert_no", "N/A"),
-            "action_taken": "Internal Court of Inquiry constituted under Section 24; haul road graded; contractor show-cause served."
+            "dgms_alert_reference": latest_incident.get("alert_no", "No active DGMS alert on record"),
+            "action_taken": action_taken,
         },
         "preventive_measures_statutory": [
             "Mandatory deployment of automated Audio-Visual Alarm (AVA) with radar proximity on all HEMM.",

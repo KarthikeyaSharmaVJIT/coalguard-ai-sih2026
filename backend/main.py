@@ -3,16 +3,17 @@ FastAPI Server for AI-Based Smart Governance & Compliance Monitoring System for 
 Ministry of Coal - SIH26024 Implementation.
 """
 
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, List, Any, Optional
 
-from .database import SessionLocal, Mine, AirQualityReading, SafetyIncident, Inspection, FieldObservation, Contractor
+from .database import Base, engine, SessionLocal, Mine, AirQualityReading, SafetyIncident, Inspection, FieldObservation, Contractor
+from .seed_db import seed
 from .risk_engine import calculate_composite_mine_risk, get_all_mine_risk_matrix, detect_recurring_violation_patterns
 from .cascade_engine import get_contractor_network, simulate_contractor_stop_work
 from .blockchain_ledger import ledger_instance
-from .ocr_digitizer import analyze_statutory_document, SAMPLE_DOCUMENTS
+from .ocr_digitizer import analyze_statutory_document, extract_text_from_file_bytes, SAMPLE_DOCUMENTS
 from .statutory_reports import generate_dgms_form_iv, generate_cpcb_form_v
 from .ai_copilot import ask_khanan_copilot
 from .prediction_engine import predict_mine_hazards
@@ -28,6 +29,18 @@ app = FastAPI(
     description="Centralized AI Governance Platform for Ministry of Coal, DGMS & CPCB",
     version="2.4.0"
 )
+
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        if db.query(Mine).count() == 0:
+            seed()
+    except Exception:
+        seed()
+    finally:
+        db.close()
 
 app.add_middleware(
     CORSMiddleware,
@@ -166,6 +179,7 @@ def get_risk_matrix():
     return get_all_mine_risk_matrix()
 
 @app.get("/api/analytics/recurring-violations")
+@app.get("/api/violations/recurring")
 def get_recurring_violations():
     """Clustered violation patterns and AI preventive directives."""
     return detect_recurring_violation_patterns()
@@ -265,6 +279,26 @@ def get_ocr_samples():
 def analyze_document(req: DocumentAnalyzeRequest):
     """Parse text/OCR scan of statutory document and extract compliance clauses."""
     return analyze_statutory_document(req.document_text, req.document_title or "Uploaded Document")
+
+@app.post("/api/ocr/upload-and-analyze")
+async def upload_and_analyze_document(
+    file: UploadFile = File(...),
+    document_title: Optional[str] = Form(None)
+):
+    """
+    Accept an uploaded statutory document file (Image PNG/JPG or PDF),
+    extract its raw text using pytesseract / pypdf OCR engines,
+    and parse compliance entities, statutory caps, and safety directives.
+    """
+    file_bytes = await file.read()
+    filename = file.filename or "uploaded_document"
+    doc_title = document_title or filename
+    
+    extracted_text = extract_text_from_file_bytes(file_bytes, filename)
+    analysis = analyze_statutory_document(extracted_text, doc_title)
+    analysis["filename"] = filename
+    analysis["file_size_bytes"] = len(file_bytes)
+    return analysis
 
 @app.get("/api/reports/form-iv/{mine_id}")
 def get_form_iv(mine_id: str):

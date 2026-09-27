@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, AlertTriangle, ShieldAlert, CheckCircle2, ChevronRight, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
+﻿import React, { useState, useEffect } from 'react';
+import { Brain, AlertTriangle, CheckCircle2, ChevronRight, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot }) {
@@ -9,7 +9,6 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
     api.getMinePredictions(mineId).then((res) => {
       if (isMounted) {
         setData(res);
@@ -24,9 +23,9 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
 
   if (loading || !data) {
     return (
-      <div className="glass-panel p-5 bg-[#0d1118]/80 border-white/10 flex items-center justify-center min-h-[220px]">
-        <div className="flex items-center gap-2 text-xs font-mono text-cyan-400">
-          <Brain className="w-4 h-4 animate-pulse" />
+      <div className="p-5 rounded-xl bg-[#0c1017] border border-white/10 flex items-center justify-center min-h-[180px]">
+        <div className="flex items-center gap-2 text-xs font-mono text-gray-400">
+          <Brain className="w-4 h-4 animate-spin text-emerald-400" />
           <span>Synthesizing AI Predictive Hazard Trajectories...</span>
         </div>
       </div>
@@ -36,41 +35,35 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
   const { predictions = [] } = data;
 
   return (
-    <div className="glass-panel p-5 bg-[#0d1118]/90 border-emerald-500/20 shadow-xl relative overflow-hidden space-y-4">
-      {/* Subtle background glow */}
-      <div className="absolute -top-10 -right-10 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="p-5 rounded-xl bg-[#0c1017] border border-white/10 space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
-            <Brain className="w-4 h-4 text-purple-400 animate-pulse" />
+          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+            <Brain className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-white font-display flex items-center gap-1.5">
-                🧠 AI PREDICTIVE SAFETY RADAR
-              </h3>
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                24h Forecast
-              </span>
+              <h2 className="text-sm font-bold text-white font-display">
+                AI Predictive Hazard Radar
+              </h2>
             </div>
-            <p className="text-[11px] text-gray-400">
-              Proactive forecasting of safety incidents before they occur
+            <p className="text-[11px] text-gray-400 font-mono mt-0.5">
+              Proactive forecasting of safety incidents before shift execution
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400">
-          <Clock className="w-3 h-3 text-cyan-400" />
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-gray-400">
+          <Clock className="w-3.5 h-3.5 text-gray-400" />
           <span>Horizon: Next 24-48 Hours</span>
         </div>
       </div>
 
       {/* Summary Banner */}
-      <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs text-purple-200 flex items-start gap-2.5">
-        <Sparkles className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-        <p className="text-[11px] leading-relaxed">
+      <div className="p-3.5 rounded-lg bg-black/40 border border-white/5 text-xs text-gray-300 flex items-start gap-2.5">
+        <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+        <p className="text-[11px] leading-relaxed text-gray-300">
           {data.composite_prediction_summary}
         </p>
       </div>
@@ -83,38 +76,37 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
           const isSelected = selectedSection?.section_id === pred.section_id;
 
           return (
-            <div
+            <button
               key={pred.section_id}
               onClick={() => setSelectedSection(pred)}
-              className={`p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-2.5 ${
+              className={`p-3.5 rounded-lg border transition text-left cursor-pointer flex flex-col justify-between space-y-2.5 ${
                 isSelected
-                  ? 'bg-white/10 border-white/30 shadow-lg scale-[1.02]'
-                  : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/[0.07]'
+                  ? 'bg-white/10 border-white/20'
+                  : 'bg-black/30 border-white/5 hover:border-white/15'
               }`}
             >
               {/* Badge & Probability */}
               <div className="flex items-center justify-between">
                 <span
-                  className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border flex items-center gap-1 ${
+                  className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${
                     isHigh
-                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                      ? 'bg-rose-500/20 text-rose-300'
                       : isMed
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      ? 'bg-amber-500/20 text-amber-300'
+                      : 'bg-emerald-500/20 text-emerald-300'
                   }`}
                 >
-                  {isHigh ? '🔴 HIGH' : isMed ? '🟠 MEDIUM' : '🟢 LOW'}
+                  {pred.risk_level}
                 </span>
 
                 <div className="text-right font-mono">
                   <span
-                    className={`text-base font-bold ${
+                    className={`text-sm font-bold ${
                       isHigh ? 'text-rose-400' : isMed ? 'text-amber-400' : 'text-emerald-400'
                     }`}
                   >
                     {pred.probability}%
                   </span>
-                  <span className="text-[9px] text-gray-400 block -mt-1">probability</span>
                 </div>
               </div>
 
@@ -126,30 +118,30 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] pt-1 border-t border-white/5 font-mono text-gray-400">
+              <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-white/5 font-mono text-gray-400">
                 <span>{pred.horizon_hours}h Window</span>
                 <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
 
       {/* Selected Section Drilldown & Action Directive */}
       {selectedSection && (
-        <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-2 text-xs">
+        <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 text-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
+                className={`w-2 h-2 rounded-full ${
                   selectedSection.risk_level === 'HIGH'
-                    ? 'bg-rose-500 animate-ping'
+                    ? 'bg-rose-500'
                     : selectedSection.risk_level === 'MEDIUM'
                     ? 'bg-amber-500'
                     : 'bg-emerald-500'
                 }`}
               />
-              <span className="font-bold text-white text-xs">{selectedSection.name}</span>
+              <span className="font-semibold text-white text-xs">{selectedSection.name}</span>
               <span className="text-[10px] font-mono text-gray-400">
                 ({selectedSection.probability}% probability within {selectedSection.horizon_hours}h)
               </span>
@@ -163,27 +155,27 @@ export default function AIPredictionCard({ mineId = 'gevra', onConsultCopilot })
                     mineId
                   )
                 }
-                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono flex items-center gap-1 transition"
+                className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-[10px] font-mono flex items-center gap-1 transition"
               >
-                <span>Ask Khanan Copilot on {selectedSection.section_id}</span>
-                <ArrowUpRight className="w-3 h-3" />
+                <span>Ask Copilot on {selectedSection.section_id}</span>
+                <ArrowUpRight className="w-3 h-3 text-emerald-400" />
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            <div className="p-2.5 rounded-lg bg-white/5 border border-white/5 space-y-1">
-              <div className="text-[10px] font-mono text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3" /> Predicted Incident (Next {selectedSection.horizon_hours}h):
+            <div className="p-3 rounded bg-white-002 border border-white/5 space-y-1">
+              <div className="text-[10px] font-mono text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-400" /> Predicted Incident (Next {selectedSection.horizon_hours}h):
               </div>
               <p className="text-[11px] text-gray-300 leading-relaxed">
                 {selectedSection.predicted_incident}
               </p>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 space-y-1">
-              <div className="text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Mandated Preventive Directive:
+            <div className="p-3 rounded bg-white-002 border border-white/5 space-y-1">
+              <div className="text-[10px] font-mono text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Mandated Preventive Directive:
               </div>
               <p className="text-[11px] text-gray-300 leading-relaxed">
                 {selectedSection.preventive_action}

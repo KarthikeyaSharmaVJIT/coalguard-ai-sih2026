@@ -11,19 +11,18 @@ import {
   Cpu,
   Search,
   ChevronLeft,
-  Send
+  ArrowRight
 } from 'lucide-react';
 import { SAMPLE_MINES } from '../lib/sampleData';
 import { api } from '../lib/api';
 
 const GlobeVisualizer = lazy(() => import('../components/GlobeVisualizer'));
 
-export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenReport }) {
+export default function OverviewDashboard({ onOpenCopilot, onOpenReport }) {
   const navigate = useNavigate();
   const [mines, setMines] = useState(SAMPLE_MINES);
   const [selectedMine, setSelectedMine] = useState(SAMPLE_MINES[0]);
   const [mineDetail, setMineDetail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubsidiary, setSelectedSubsidiary] = useState('ALL');
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(true);
@@ -39,10 +38,8 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
 
   useEffect(() => {
     if (selectedMine) {
-      setLoadingDetail(true);
       api.getMineDetails(selectedMine.id).then((data) => {
         setMineDetail(data);
-        setLoadingDetail(false);
       });
     }
   }, [selectedMine]);
@@ -71,10 +68,10 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
     <div className="relative w-full h-[calc(100vh-105px)] overflow-hidden bg-[#07090e]">
       
       {/* 3D Centered Globe Layer */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center">
+      <div className="absolute inset-0 z-0">
         <Suspense
           fallback={
-            <div className="flex flex-col items-center justify-center text-emerald-400 gap-3">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-emerald-400 gap-3">
               <Cpu className="w-8 h-8 animate-spin" />
               <span className="font-mono text-xs">Hydrating 3D National Spatial Model...</span>
             </div>
@@ -89,63 +86,63 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
       </div>
 
       {/* Top Floating National Telemetry HUD */}
-      <div className="absolute top-3 left-4 right-4 z-10 pointer-events-none">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-2.5 pointer-events-auto">
+      <div className="absolute top-4 left-6 right-6 z-10 pointer-events-none">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 pointer-events-auto">
           
-          <div className="glass-panel p-2.5 bg-[#0c1017]/85 border-white/10 flex items-center justify-between shadow-lg">
+          <div className="p-3.5 rounded-xl bg-[#0c1017]/90 border border-white/10 flex items-center justify-between shadow-lg">
             <div>
-              <div className="text-[9px] text-gray-400 font-mono uppercase tracking-wider">CIL Monitored Output</div>
-              <div className="text-base font-bold text-white font-mono mt-0.5">
+              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">CIL Monitored Output</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">
                 {totalProduction.toFixed(1)} <span className="text-[10px] text-gray-400 font-normal">/ {totalCapacity.toFixed(1)} MTPA</span>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
             </div>
           </div>
 
-          <div className="glass-panel p-2.5 bg-[#0c1017]/85 border-white/10 flex items-center justify-between shadow-lg">
+          <div className="p-3.5 rounded-xl bg-[#0c1017]/90 border border-white/10 flex items-center justify-between shadow-lg">
             <div>
-              <div className="text-[9px] text-gray-400 font-mono uppercase tracking-wider">Critical Risk Mines</div>
-              <div className="text-base font-bold text-rose-400 font-mono mt-0.5 flex items-center gap-1.5">
+              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">Critical Risk Mines</div>
+              <div className="text-sm font-bold text-rose-400 font-mono mt-0.5 flex items-center gap-1.5">
                 {criticalCount} <span className="text-[10px] text-gray-400 font-normal">({elevatedCount} Elevated)</span>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
-              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4 text-rose-400" />
             </div>
           </div>
 
-          <div className="glass-panel p-2.5 bg-[#0c1017]/85 border-white/10 flex items-center justify-between shadow-lg">
+          <div className="p-3.5 rounded-xl bg-[#0c1017]/90 border border-white/10 flex items-center justify-between shadow-lg">
             <div>
-              <div className="text-[9px] text-gray-400 font-mono uppercase tracking-wider">Active Workforce Grid</div>
-              <div className="text-base font-bold text-cyan-400 font-mono mt-0.5">
-                {totalWorkers.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">Workers</span>
+              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">Active Workforce Grid</div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">
+                {totalWorkers.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">Personnel</span>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-              <Activity className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-cyan-400" />
             </div>
           </div>
 
-          <div className="glass-panel p-2.5 bg-[#0c1017]/85 border-white/10 flex items-center justify-between shadow-lg">
+          <div className="p-3.5 rounded-xl bg-[#0c1017]/90 border border-white/10 flex items-center justify-between shadow-lg">
             <div>
-              <div className="text-[9px] text-gray-400 font-mono uppercase tracking-wider">Statutory Audit State</div>
-              <div className="text-base font-bold text-emerald-400 font-mono mt-0.5 flex items-center gap-1.5">
-                100% <span className="text-[10px] text-gray-400 font-normal">SHA-256 Synced</span>
+              <div className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">Statutory Audit State</div>
+              <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5 flex items-center gap-1.5">
+                100% <span className="text-[10px] text-gray-400 font-normal">SHA-256 Ledger</span>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
           </div>
 
         </div>
       </div>
 
-      {/* Left Floating Panel: 12 Opencast Mine Fleet */}
-      <div className={`absolute top-20 left-4 bottom-12 z-10 flex flex-col glass-panel bg-[#0b0e14]/95 border-white/10 shadow-2xl transition-all duration-300 ${
-        isLeftPanelOpen ? 'w-80 p-3' : 'w-10 p-2 items-center'
+      {/* Left Floating Panel: Opencast Mine Fleet */}
+      <div className={`absolute top-24 left-6 bottom-14 z-10 flex flex-col rounded-xl bg-[#0c1017]/95 border border-white/10 shadow-2xl transition-all duration-300 ${
+        isLeftPanelOpen ? 'w-80 p-3.5' : 'w-10 p-2 items-center'
       }`}>
         <div className="flex items-center justify-between pb-2 border-b border-white/10 w-full">
           {isLeftPanelOpen ? (
@@ -184,7 +181,7 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                   placeholder="Search mine, state..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 font-mono"
+                  className="w-full bg-black/50 border border-white/10 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/60 font-mono"
                 />
               </div>
 
@@ -194,9 +191,9 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                   <button
                     key={sub}
                     onClick={() => setSelectedSubsidiary(sub)}
-                    className={`px-2 py-0.5 rounded-md transition ${
+                    className={`px-2 py-0.5 rounded transition ${
                       selectedSubsidiary === sub
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold'
+                        ? 'bg-white/15 text-white font-semibold'
                         : 'bg-white/5 text-gray-400 hover:text-white'
                     }`}
                   >
@@ -217,17 +214,17 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                   <button
                     key={m.id}
                     onClick={() => setSelectedMine(m)}
-                    className={`w-full text-left p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between ${
+                    className={`w-full text-left p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-white shadow-sm'
-                        : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/15'
+                        ? 'bg-white/10 border-white/20 text-white'
+                        : 'bg-white-002 border-white/5 text-gray-300 hover:bg-white/5'
                     }`}
                   >
                     <div className="truncate pr-2">
                       <div className="font-semibold text-xs truncate flex items-center gap-1.5">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: m.color || (isCritical ? '#ef4444' : isElevated ? '#f59e0b' : '#10b981') }}
+                          style={{ backgroundColor: isCritical ? '#ef4444' : isElevated ? '#f59e0b' : '#10b981' }}
                         />
                         {m.name}
                       </div>
@@ -255,7 +252,7 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
       </div>
 
       {/* Right Floating Panel: Focused Mine Command & Telemetry */}
-      <div className="absolute top-20 right-4 bottom-12 w-84 z-10 hidden md:flex flex-col glass-panel p-4 bg-[#0b0e14]/95 border-white/10 overflow-y-auto shadow-2xl space-y-3.5">
+      <div className="absolute top-24 right-6 max-h-[calc(100vh-150px)] w-84 z-10 hidden md:flex flex-col rounded-xl p-4 bg-[#0c1017] border border-white/10 overflow-y-auto shadow-2xl space-y-3.5">
         {selectedMine && (
           <>
             {/* Mine Header */}
@@ -265,12 +262,12 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                   {selectedMine.subsidiary.split(' ')[0]}
                 </span>
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold ${
+                  className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold ${
                     selectedMine.composite_risk_score >= 70
-                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                      ? 'bg-rose-500/20 text-rose-300'
                       : selectedMine.composite_risk_score >= 45
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      ? 'bg-amber-500/20 text-amber-300'
+                      : 'bg-emerald-500/20 text-emerald-300'
                   }`}
                 >
                   {selectedMine.risk_level} ({selectedMine.composite_risk_score}/100)
@@ -284,15 +281,15 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
 
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+              <div className="bg-black/40 p-2.5 rounded-lg border border-white/5">
                 <div className="text-[10px] text-gray-400 font-mono">Production / EC Cap</div>
-                <div className="font-bold text-white mt-0.5">
+                <div className="font-bold text-white mt-0.5 font-mono">
                   {selectedMine.production_mtpa} / {selectedMine.ec_limit_mtpa} <span className="text-[10px] text-gray-400">MT</span>
                 </div>
               </div>
-              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+              <div className="bg-black/40 p-2.5 rounded-lg border border-white/5">
                 <div className="text-[10px] text-gray-400 font-mono">Active PTWs</div>
-                <div className="font-bold text-emerald-400 mt-0.5">
+                <div className="font-bold text-emerald-400 mt-0.5 font-mono">
                   {selectedMine.active_ptw_count || 6} Active
                 </div>
               </div>
@@ -300,12 +297,12 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
 
             {/* CAAQMS Real-time Air Quality with Statutory Progress Bars */}
             {latestTelemetry && (
-              <div className="bg-white/5 p-3 rounded-xl border border-white/5 space-y-2 text-xs">
+              <div className="bg-black/40 p-3 rounded-lg border border-white/5 space-y-2 text-xs">
                 <div className="flex items-center justify-between text-gray-200 font-semibold">
                   <span className="flex items-center gap-1.5">
                     <Wind className="w-3.5 h-3.5 text-cyan-400" /> CAAQMS Telemetry
                   </span>
-                  <span className="text-[10px] font-mono text-cyan-300 truncate max-w-[140px]">
+                  <span className="text-[10px] font-mono text-gray-400 truncate max-w-[140px]">
                     {selectedMine.caaqms_station || 'Station AAQMS'}
                   </span>
                 </div>
@@ -314,7 +311,7 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                 <div>
                   <div className="flex items-center justify-between text-[11px] font-mono">
                     <span className="text-gray-400">PM10: <strong>{latestTelemetry.pm10} µg/m³</strong></span>
-                    <span className="text-gray-500">Std: 100 µg/m³</span>
+                    <span className="text-gray-500">Std: 100</span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-black/60 overflow-hidden mt-1">
                     <div
@@ -328,7 +325,7 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                 <div>
                   <div className="flex items-center justify-between text-[11px] font-mono">
                     <span className="text-gray-400">PM2.5: <strong>{latestTelemetry.pm25} µg/m³</strong></span>
-                    <span className="text-gray-500">Std: 60 µg/m³</span>
+                    <span className="text-gray-500">Std: 60</span>
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-black/60 overflow-hidden mt-1">
                     <div
@@ -353,7 +350,7 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
               
               {mineDetail?.safety_incidents && mineDetail.safety_incidents.length > 0 ? (
                 mineDetail.safety_incidents.slice(0, 2).map((inc, idx) => (
-                  <div key={idx} className="p-2.5 rounded-lg bg-rose-950/20 border border-rose-500/25 text-xs space-y-1">
+                  <div key={idx} className="p-2.5 rounded-lg bg-black/40 border border-white/5 text-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-[10px] text-rose-300 font-bold">{inc.alert_no}</span>
                       <span className="text-[10px] text-gray-400">{inc.date}</span>
@@ -363,37 +360,36 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
                   </div>
                 ))
               ) : (
-                <div className="p-2.5 rounded-lg bg-white/5 text-gray-400 text-xs flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-black/40 text-gray-400 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Zero fatal safety notices in registry.
                 </div>
               )}
             </div>
 
-            {/* Quick Actions & Authority Dispatch Link */}
+            {/* Operational Action Links */}
             <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+              <button
+                onClick={() => navigate('/mine-hub')}
+                className="w-full py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-mono font-semibold transition flex items-center justify-center gap-1.5"
+              >
+                <span>Inspect Site Safety Operations</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => onOpenCopilot('What is the biggest safety concern at this mine?', selectedMine?.id)}
-                  className="flex-1 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition"
+                  className="flex-1 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs font-mono transition"
                 >
-                  Ask Khanan AI
+                  Ask Copilot
                 </button>
                 <button
-                  onClick={onOpenReport}
-                  className="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs font-semibold transition"
+                  onClick={() => onOpenReport(selectedMine?.id)}
+                  className="flex-1 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs font-mono transition"
                 >
                   Form IV / V
                 </button>
               </div>
-
-              {/* Direct Authority Dispatch Button */}
-              <button
-                onClick={() => navigate('/authority-dispatch')}
-                className="w-full py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-semibold transition flex items-center justify-center gap-1.5"
-              >
-                <Send className="w-3.5 h-3.5 text-rose-400" />
-                <span>Lodge Notice with DGMS / CPCB</span>
-              </button>
             </div>
 
           </>
@@ -401,10 +397,10 @@ export default function OverviewDashboard({ onOpenCopilot, onOpenOCR, onOpenRepo
       </div>
 
       {/* Bottom Live Ticker Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-[#080a0f]/95 border-t border-white/10 px-4 py-2 flex items-center justify-between text-xs font-mono">
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-[#080a0f] border-t border-white/10 px-6 py-2.5 flex items-center justify-between text-xs font-mono">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 live-pulse"></span>
+          <span className="flex items-center gap-2 text-emerald-400 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             LIVE GRID SYNC
           </span>
           <span className="text-gray-400 hidden sm:inline">

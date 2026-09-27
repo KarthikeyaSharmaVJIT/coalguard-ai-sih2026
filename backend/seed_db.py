@@ -1,5 +1,9 @@
-from database import Base, engine, SessionLocal, Mine, Contractor, ContractorMineAssignment, AirQualityReading, SafetyIncident, Inspection, FieldObservation
-from data import MINES, AIR_QUALITY, SAFETY_INCIDENTS, INSPECTIONS, FIELD_OBSERVATIONS, CONTRACTOR_PROFILES
+try:
+    from .database import Base, engine, SessionLocal, Mine, Contractor, ContractorMineAssignment, AirQualityReading, SafetyIncident, Inspection, FieldObservation
+    from .data import MINES, AIR_QUALITY, SAFETY_INCIDENTS, INSPECTIONS, FIELD_OBSERVATIONS, CONTRACTOR_PROFILES
+except (ImportError, ValueError):
+    from database import Base, engine, SessionLocal, Mine, Contractor, ContractorMineAssignment, AirQualityReading, SafetyIncident, Inspection, FieldObservation
+    from data import MINES, AIR_QUALITY, SAFETY_INCIDENTS, INSPECTIONS, FIELD_OBSERVATIONS, CONTRACTOR_PROFILES
 
 def seed():
     Base.metadata.create_all(bind=engine)

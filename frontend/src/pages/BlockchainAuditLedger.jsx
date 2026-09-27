@@ -5,19 +5,16 @@ import {
   CheckCircle2, 
   Layers, 
   AlertOctagon,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import { api } from '../lib/api';
 
-export default function BlockchainAuditLedger() {
+export default function BlockchainAuditLedger({ onOpenReport }) {
   const [blocks, setBlocks] = useState([]);
   const [verification, setVerification] = useState(null);
   const [verifying, setVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    loadLedger();
-  }, []);
 
   const loadLedger = async () => {
     setLoading(true);
@@ -30,6 +27,10 @@ export default function BlockchainAuditLedger() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadLedger();
+  }, []);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -44,44 +45,56 @@ export default function BlockchainAuditLedger() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 bg-[#0d1118]/80 border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl bg-[#0c1017] border border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-            <Link2 className="w-6 h-6 text-emerald-400" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+            <Link2 className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white font-display">Cryptographic Audit Ledger</h2>
-              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-base font-bold text-white font-display">Cryptographic Audit Ledger</h1>
+              <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-white/5 text-gray-300 border border-white/10">
                 SHA-256 Hash Chained
               </span>
             </div>
-            <p className="text-xs text-gray-400 font-mono">
+            <p className="text-xs text-gray-400 font-mono mt-0.5">
               Tamper-Proof Statutory History • Immutable Inspection & Clearance Blocks
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={loadLedger}
             disabled={loading}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs transition cursor-pointer"
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs transition cursor-pointer"
             title="Refresh Ledger Blocks"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
+
+          {onOpenReport && (
+            <button
+              onClick={onOpenReport}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-200 border border-white/10 text-xs font-mono transition cursor-pointer"
+              title="Export Statutory Compliance Certificate"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-400" />
+              <span>Export Audit Certificate</span>
+            </button>
+          )}
+
           <button
             onClick={handleVerify}
             disabled={verifying}
-            className="px-4 py-2 rounded-xl bg-emerald-500 text-black font-semibold text-xs hover:bg-emerald-400 transition flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white font-mono text-xs font-semibold transition flex items-center gap-2 border border-white/10 cursor-pointer disabled:opacity-50"
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>{verifying ? 'Recalculating Block Hashes...' : 'Verify Cryptographic Chain Integrity'}</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>{verifying ? 'Recalculating Hashes...' : 'Verify Cryptographic Integrity'}</span>
           </button>
         </div>
       </div>
@@ -91,8 +104,8 @@ export default function BlockchainAuditLedger() {
         <div
           className={`p-4 rounded-xl border text-xs flex items-center justify-between transition-all ${
             verification.valid
-              ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-              : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
+              ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300'
+              : 'bg-rose-950/20 border-rose-500/30 text-rose-300'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -116,40 +129,40 @@ export default function BlockchainAuditLedger() {
 
       {/* Blocks Feed */}
       <div className="space-y-4">
-        <h3 className="text-xs font-mono uppercase tracking-wider text-gray-400 flex items-center gap-2">
+        <h2 className="text-xs font-mono uppercase tracking-wider text-gray-400 flex items-center gap-2">
           <Layers className="w-4 h-4 text-emerald-400" /> Immutable Block Sequence ({blocks.length} Blocks)
-        </h3>
+        </h2>
 
         <div className="space-y-3">
           {blocks.map((b) => (
             <div
               key={b.index}
-              className="glass-panel p-4 bg-[#0c1017]/85 border-white/10 hover:border-emerald-500/30 transition-all space-y-3"
+              className="p-4 rounded-xl bg-[#0c1017] border border-white/10 space-y-3"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold flex items-center justify-center">
+                  <span className="w-6 h-6 rounded bg-white/5 text-gray-300 font-mono text-xs font-bold flex items-center justify-center">
                     #{b.index}
                   </span>
-                  <span className="font-bold text-white text-xs font-mono">{b.action_type}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-white/10 text-gray-300">
+                  <span className="font-semibold text-white text-xs font-mono">{b.action_type}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-white/5 text-gray-300">
                     Target: {b.mine_id}
                   </span>
                   {b.nonce !== undefined && (
-                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-white/5 text-gray-400">
                       Nonce: {b.nonce}
                     </span>
                   )}
                 </div>
 
                 <div className="text-[11px] text-gray-400 font-mono">
-                  {b.timestamp} • Actor: <strong className="text-emerald-300">{b.actor_id}</strong> ({b.actor_role})
+                  {b.timestamp} • Actor: <strong className="text-gray-300">{b.actor_id}</strong> ({b.actor_role})
                 </div>
               </div>
 
               {/* Payload details */}
-              <div className="p-3 rounded-lg bg-black/50 border border-white/5 font-mono text-[11px] text-gray-300 overflow-x-auto">
-                <span className="text-[10px] text-gray-500 block mb-1 uppercase tracking-wider">Payload:</span>
+              <div className="p-3 rounded-lg bg-black/40 border border-white/5 font-mono text-[11px] text-gray-300 overflow-x-auto">
+                <span className="text-[10px] text-gray-500 block mb-1 uppercase tracking-wider">Payload Data:</span>
                 <pre className="text-emerald-300/90">{JSON.stringify(b.payload, null, 2)}</pre>
               </div>
 
@@ -160,8 +173,8 @@ export default function BlockchainAuditLedger() {
                   <span className="text-gray-400">{b.prev_hash}</span>
                 </div>
                 <div className="truncate text-right">
-                  <span className="text-emerald-500">Block Hash: </span>
-                  <span className="text-emerald-400 font-semibold">{b.hash}</span>
+                  <span className="text-gray-500">Block Hash: </span>
+                  <span className="text-emerald-400 font-medium">{b.hash}</span>
                 </div>
               </div>
             </div>
